@@ -6,7 +6,7 @@ def lip_sync(image_path, audio_path, output_path, model_path):
     assert os.path.exists(audio_path), f"音频未找到: {audio_path}"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     cmd = [
-        sys.executable, 'scripts/wav2lip_inference.py',
+        'python', 'scripts/wav2lip_inference.py',
         '--checkpoint_path', model_path,
         '--face', image_path,
         '--audio', audio_path,
