@@ -1,0 +1,14 @@
+torch
+transformers
+numpy
+scipy
+tqdm
+soundfile
+requests
+bark
+opencv-python
+moviepy
+librosa
+fastapi
+uvicorn
+python-multipart 
