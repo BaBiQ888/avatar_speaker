@@ -5,9 +5,9 @@ from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from scripts.generate_audio import main as tts_main
-from scripts.generate_video import main as wav2lip_main
-from scripts.merge_av import main as merge_main
+from app.tts import tts
+from app.musetalk_sync import musetalk_sync
+from app.av_merge import merge
 
 app = FastAPI()
 
@@ -42,16 +42,15 @@ async def generate(
 
     # 路径定义
     tts_out = os.path.join(task_dir, "tts.wav")
-    video_out = os.path.join(task_dir, "video.mp4")
+    video_out = os.path.join(task_dir, "musetalk_output.mp4")
     final_out = os.path.join(task_dir, "final.mp4")
-    model_path = "models/wav2lip.pth"
 
     # 步骤1：TTS
-    tts_main(text_path, tts_out)
-    # 步骤2：Wav2Lip
-    wav2lip_main(image_path, tts_out, video_out, model_path)
+    tts(text_path, tts_out)
+    # 步骤2：MuseTalk
+    musetalk_sync(image_path, tts_out, video_out)
     # 步骤3：合成
-    merge_main(video_out, tts_out, final_out)
+    merge(video_out, tts_out, final_out)
 
     # 返回视频下载链接
     return JSONResponse({
