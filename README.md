@@ -24,6 +24,8 @@ digital_human_talker/
 │   ├── generate_audio.py
 │   ├── generate_video.py
 │   └── merge_av.py
+│   ├── wav2lip_inference.py    # Wav2Lip 官方脚本（需手动下载）
+│   └── audio.py                # Wav2Lip 官方依赖（需手动下载）
 │
 ├── tests/                      # 基础测试用例
 │   ├── test_tts.py
@@ -63,7 +65,11 @@ sudo apt update && sudo apt install ffmpeg libsndfile1
 - Bark: 首次运行自动下载
 
 ### 3. 准备 Wav2Lip 脚本
-请从 [Wav2Lip 官方仓库](https://github.com/Rudrabha/Wav2Lip) 下载 `inference.py` 到 `scripts/wav2lip_inference.py`。
+请从 [Wav2Lip 官方仓库](https://github.com/Rudrabha/Wav2Lip) 下载 `inference.py` 和 `audio.py` 到 `scripts/` 目录：
+```bash
+curl -o scripts/wav2lip_inference.py https://raw.githubusercontent.com/Rudrabha/Wav2Lip/master/inference.py
+curl -o scripts/audio.py https://raw.githubusercontent.com/Rudrabha/Wav2Lip/master/audio.py
+```
 
 ### 4. 命令行一键生成
 ```bash
@@ -131,11 +137,38 @@ pytest tests/
 ---
 
 ## 常见问题（FAQ）
-- **Bark 报错找不到 libsndfile1？**
-  `sudo apt install libsndfile1`
-- **Wav2Lip 口型合成报错？**
-  检查 models/wav2lip.pth 和 scripts/wav2lip_inference.py 是否存在。
-- **推理速度慢？**
-  CPU-only 环境下为正常现象，建议小批量测试。
+
+### 1. inference.py 下载后报 HTML/语法错误？
+- 你下载的是网页不是源码。请用 `curl` 或在 GitHub "Raw" 页面右键另存为。
+
+### 2. `ModuleNotFoundError: No module named 'audio'`？
+- 你缺少 Wav2Lip 的 audio.py 文件。请用如下命令下载：
+  ```bash
+  curl -o scripts/audio.py https://raw.githubusercontent.com/Rudrabha/Wav2Lip/master/audio.py
+  ```
+
+### 3. `FileNotFoundError: No such file or directory: 'python'` 或 `'sys.executable'`？
+- 推荐在 subprocess 里用 `sys.executable` 变量（不要加引号），保证用当前 Python 解释器。
+
+### 4. Bark 报权重加载或 pickle 错误？
+- PyTorch 2.6+ 默认 `weights_only=True`，Bark 兼容性差。请降级 torch/torchaudio：
+  ```bash
+  pip uninstall torch torchaudio
+  pip install torch==2.5.1 torchaudio==2.5.0 --index-url https://download.pytorch.org/whl/cpu
+  ```
+
+### 5. `ffmpeg`、`libsndfile1` 报错？
+- Linux 下需安装：
+  ```bash
+  sudo apt install ffmpeg libsndfile1
+  ```
+
+### 6. 口型推理慢/CPU-only 慢？
+- 纯 CPU 环境下为正常现象，建议小批量测试。
+
+### 7. 其它依赖冲突？
+- 保证 torch、torchaudio 版本一致，requirements.txt 里如无特殊需求可不装 torchaudio。
+
+---
 
 如需进一步开发建议或功能扩展，欢迎联系！
