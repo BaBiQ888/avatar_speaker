@@ -17,7 +17,7 @@ curl -O $BASE_URL/models.py
 
 # 下载 face_detection 目录及其文件
 mkdir -p face_detection
-for file in __init__.py ssd.py box_utils.py face_detection.py; do
+for file in __init__.py ssd.py box_utils.py face_detection.py api.py; do
   curl -o face_detection/$file $BASE_URL/face_detection/$file
 done
 
