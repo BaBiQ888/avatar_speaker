@@ -9,7 +9,7 @@ from app.tts import tts
 # from app.lip_sync import lip_sync
 from app.musetalk_sync import musetalk_sync
 from app.av_merge import merge
-from app.config import OUTPUT_DIR
+from app.config import OUTPUT_DIR, MUSETALK_DIR, MUSETALK_VERSION
 
 app = FastAPI()
 
@@ -26,13 +26,19 @@ app.add_middleware(
 async def generate(
     request: Request,
     text: str = Form(...),
-    image: UploadFile = File(...)
+    image: UploadFile = File(...),
+    musetalk_version: str = Form(MUSETALK_VERSION)  # 默认使用配置中的版本
 ):
     print("[API] /generate called")
     print(f"[API] Request headers: {request.headers}")
     print(f"[API] text field: {text}")
     print(
         f"[API] image filename: {image.filename}, content_type: {image.content_type}")
+    print(f"[API] musetalk_version: {musetalk_version}")
+
+    # 验证版本参数
+    if musetalk_version not in ["v1.0", "v1.5"]:
+        return JSONResponse({"error": "无效的 MuseTalk 版本，必须是 v1.0 或 v1.5"}, status_code=400)
 
     # 创建唯一任务目录
     task_id = str(uuid.uuid4())
@@ -63,8 +69,9 @@ async def generate(
     print(f"[API] Step 1: TTS done, output: {tts_out}")
 
     # 步骤2：MuseTalk
-    print("[API] Step 2: MuseTalk start")
-    musetalk_sync(image_path, tts_out, video_out)
+    print(f"[API] Step 2: MuseTalk {musetalk_version} start")
+    musetalk_sync(image_path, tts_out, video_out,
+                  musetalk_dir=MUSETALK_DIR, version=musetalk_version)
     print(f"[API] Step 2: MuseTalk done, output: {video_out}")
 
     # 步骤3：合成

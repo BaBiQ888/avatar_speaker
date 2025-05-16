@@ -172,3 +172,107 @@ pytest tests/
 ---
 
 如需进一步开发建议或功能扩展，欢迎联系！
+
+# 数字人口型同步视频生成系统
+
+本项目实现了一个简单的口型同步视频生成系统，支持 Wav2Lip 和 MuseTalk 两种口型同步引擎。
+
+## 特性
+
+- 文本转语音 (TTS)
+- 口型同步视频生成 (支持 Wav2Lip 和 MuseTalk)
+- 音频和视频合成
+- 命令行和 API 接口
+
+## 安装
+
+### 1. 克隆仓库
+
+```bash
+git clone <repository-url>
+cd avatar_speaker
+```
+
+### 2. 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. 设置 MuseTalk（推荐）
+
+我们强烈推荐使用 MuseTalk 作为口型同步引擎，质量比 Wav2Lip 更佳。
+
+```bash
+# 设置 MuseTalk v1.0
+python -m scripts.setup_musetalk --version v1.0
+
+# 或设置 MuseTalk v1.5
+python -m scripts.setup_musetalk --version v1.5
+```
+
+按照脚本提示从官方渠道获取模型文件。
+
+### 4. 检查 MuseTalk 安装
+
+```bash
+python -m scripts.check_musetalk --version v1.0
+```
+
+## 使用方法
+
+### 命令行
+
+```bash
+# 使用 MuseTalk (默认)
+python pipeline.py --text input/input_text.txt --image input/reference_image.jpg --output_dir output/
+
+# 使用 Wav2Lip
+python pipeline.py --text input/input_text.txt --image input/reference_image.jpg --output_dir output/ --lip_model wav2lip
+
+# 使用 MuseTalk v1.5
+python pipeline.py --text input/input_text.txt --image input/reference_image.jpg --musetalk_version v1.5
+```
+
+### API 服务
+
+```bash
+# 启动 API 服务
+uvicorn api.fastapi_app:app --host 0.0.0.0 --port 8000
+```
+
+## API 文档
+
+启动服务后，访问 http://localhost:8000/docs 查看 API 文档。
+
+### 生成视频
+
+POST `/generate`
+
+参数:
+- `text`: 文本内容 
+- `image`: 图像文件
+- `musetalk_version`: MuseTalk 版本，可选 `v1.0` 或 `v1.5`
+
+响应:
+```json
+{
+  "task_id": "uuid",
+  "video_url": "/download/uuid"
+}
+```
+
+### 下载视频
+
+GET `/download/{task_id}`
+
+## 系统要求
+
+- Python 3.8+
+- 建议：CUDA 支持的 GPU（用于 MuseTalk 和 Wav2Lip 推理）
+- 内存：至少 8GB（MuseTalk 比 Wav2Lip 内存占用更低）
+
+## 注意事项
+
+- MuseTalk 官方项目：https://github.com/netease-youdao/MuseTalk
+- 如遇到内存问题，请优先使用 MuseTalk，它比 Wav2Lip 更高效
