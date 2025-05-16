@@ -207,7 +207,7 @@ pip install -r requirements.txt
 # 设置 MuseTalk v1.0
 python -m scripts.setup_musetalk --version v1.0
 
-# 或设置 MuseTalk v1.5
+# 或设置 MuseTalk v1.5 (推荐)
 python -m scripts.setup_musetalk --version v1.5
 ```
 
@@ -234,6 +234,21 @@ python pipeline.py --text input/input_text.txt --image input/reference_image.jpg
 python pipeline.py --text input/input_text.txt --image input/reference_image.jpg --musetalk_version v1.5
 ```
 
+#### MuseTalk 参数调整
+
+MuseTalk 支持多种参数来微调生成效果：
+
+```bash
+# 调整嘴部区域 (正值增加嘴部开度，负值减少嘴部开度)
+python pipeline.py --text input/input_text.txt --image input/reference_image.jpg --bbox_shift -5
+
+# 使用半精度推理 (节省显存)
+python pipeline.py --text input/input_text.txt --image input/reference_image.jpg --use_float16
+
+# 设置输出视频帧率
+python pipeline.py --text input/input_text.txt --image input/reference_image.jpg --fps 30
+```
+
 ### API 服务
 
 ```bash
@@ -253,6 +268,9 @@ POST `/generate`
 - `text`: 文本内容 
 - `image`: 图像文件
 - `musetalk_version`: MuseTalk 版本，可选 `v1.0` 或 `v1.5`
+- `bbox_shift`: 嘴部区域调整，正值增加嘴部开度，负值减少嘴部开度
+- `use_float16`: 是否使用半精度推理以节省显存
+- `fps`: 生成视频的帧率
 
 响应:
 ```json
@@ -272,7 +290,21 @@ GET `/download/{task_id}`
 - 建议：CUDA 支持的 GPU（用于 MuseTalk 和 Wav2Lip 推理）
 - 内存：至少 8GB（MuseTalk 比 Wav2Lip 内存占用更低）
 
+## 调整 MuseTalk 配置
+
+可以通过编辑 `app/config.py` 文件来调整 MuseTalk 的默认配置：
+
+```python
+# MuseTalk 推理参数
+MUSETALK_INFERENCE = {
+    'fps': 25,
+    'bbox_shift': 0,  # 嘴部区域调整参数，正值增加嘴部开度，负值减少嘴部开度
+    'use_float16': True,  # 是否使用半精度推理以节省显存
+}
+```
+
 ## 注意事项
 
 - MuseTalk 官方项目：https://github.com/netease-youdao/MuseTalk
 - 如遇到内存问题，请优先使用 MuseTalk，它比 Wav2Lip 更高效
+- 嘴型同步效果不佳时，尝试调整 `bbox_shift` 参数

@@ -9,7 +9,7 @@ from app.tts import tts
 # from app.lip_sync import lip_sync
 from app.musetalk_sync import musetalk_sync
 from app.av_merge import merge
-from app.config import OUTPUT_DIR, MUSETALK_DIR, MUSETALK_VERSION
+from app.config import OUTPUT_DIR, MUSETALK_DIR, MUSETALK_VERSION, MUSETALK_INFERENCE
 
 app = FastAPI()
 
@@ -27,7 +27,10 @@ async def generate(
     request: Request,
     text: str = Form(...),
     image: UploadFile = File(...),
-    musetalk_version: str = Form(MUSETALK_VERSION)  # 默认使用配置中的版本
+    musetalk_version: str = Form(MUSETALK_VERSION),  # 默认使用配置中的版本
+    bbox_shift: int = Form(MUSETALK_INFERENCE['bbox_shift']),
+    use_float16: bool = Form(MUSETALK_INFERENCE['use_float16']),
+    fps: int = Form(MUSETALK_INFERENCE['fps'])
 ):
     print("[API] /generate called")
     print(f"[API] Request headers: {request.headers}")
@@ -35,6 +38,9 @@ async def generate(
     print(
         f"[API] image filename: {image.filename}, content_type: {image.content_type}")
     print(f"[API] musetalk_version: {musetalk_version}")
+    print(f"[API] bbox_shift: {bbox_shift}")
+    print(f"[API] use_float16: {use_float16}")
+    print(f"[API] fps: {fps}")
 
     # 验证版本参数
     if musetalk_version not in ["v1.0", "v1.5"]:
@@ -70,8 +76,16 @@ async def generate(
 
     # 步骤2：MuseTalk
     print(f"[API] Step 2: MuseTalk {musetalk_version} start")
-    musetalk_sync(image_path, tts_out, video_out,
-                  musetalk_dir=MUSETALK_DIR, version=musetalk_version)
+    musetalk_sync(
+        image_path,
+        tts_out,
+        video_out,
+        musetalk_dir=MUSETALK_DIR,
+        version=musetalk_version,
+        bbox_shift=bbox_shift,
+        use_float16=use_float16,
+        fps=fps
+    )
     print(f"[API] Step 2: MuseTalk done, output: {video_out}")
 
     # 步骤3：合成
